@@ -202,7 +202,7 @@ export default function TelePrompter() {
       {/* Header */}
       <header className="flex items-center justify-between p-4 bg-gray-900/50 border-b border-white/5 backdrop-blur-md z-20">
         <div className="flex items-center gap-6">
-          <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:block">
+          <h1 className="text-lg font-bold bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:block">
             提詞夥伴
           </h1>
 
