@@ -66,7 +66,7 @@ function autoWrapText(content: string, size: number, width: number): string[] {
 const DEFAULT_WPM = 170;
 
 /** 預設字體大小（px） */
-const DEFAULT_FONT_SIZE = 42;
+const DEFAULT_FONT_SIZE = 74;
 
 /** 預設稿文 */
 const DEFAULT_TEXT =
