@@ -130,6 +130,7 @@ export default function TelePrompter() {
   useEffect(() => {
     const updateWidth = () => {
       const el = document.getElementById('teleprompter-content');
+      console.log("containerWidth", el?.offsetWidth);
       if (el) setContainerWidth(el.offsetWidth);
     };
     window.addEventListener('resize', updateWidth);
@@ -308,7 +309,7 @@ export default function TelePrompter() {
       )}
 
       {/* 主要內容區 */}
-      <main className="flex-1 relative overflow-hidden" id="teleprompter-content" onClick={() => setShowSettings(false)}>
+      <main className="flex-1 relative overflow-hidden" onClick={() => setShowSettings(false)}>
         {mode === 'edit' ? (
           <div className="h-full p-6 max-w-5xl mx-auto w-full">
             <textarea
@@ -327,6 +328,7 @@ export default function TelePrompter() {
                 transform: isMirrored ? 'scaleX(-1)' : 'none',
                 transition: 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)'
               }}
+              id="teleprompter-content"
               className="w-full max-w-6xl flex flex-col items-center z-10"
             >
               {/* 上一行 */}
