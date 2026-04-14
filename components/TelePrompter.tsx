@@ -70,9 +70,7 @@ const DEFAULT_WPM = 170;
 const DEFAULT_FONT_SIZE = 74;
 
 /** 預設稿文 */
-const DEFAULT_TEXT =
-
-  "歡迎使用智慧斷句提詞器！\n\n這是一個非常強大的功能。系統會自動偵測目前的螢幕寬度與字體大小，將過長的段落自動切分為適合的一行。這樣你就不需要手動按 Enter 來換行了。\n\n即使是很長很長的一段話，只要我們開啟了智慧斷句，它就會優先尋找標點符號，並確保每一行都不會超出螢幕範圍。試著調整看看字體大小，你會發現每一行的字數會自動隨之調整！";
+const DEFAULT_TEXT = "";
 /** 是否鏡像顯示 */
 const DEFAULT_IS_MIRRORED = false;
 
