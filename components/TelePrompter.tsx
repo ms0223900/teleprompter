@@ -1,5 +1,6 @@
 "use client";
 
+import { loadManuscript, saveManuscript } from "@/lib/teleprompterStorage";
 import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -99,9 +100,14 @@ const DEFAULT_LINE_PROGRESS_MS = 0;
 /** 容器參考寬度（px），供斷句量測；實際會由 DOM 更新 */
 const DEFAULT_CONTAINER_WIDTH = 1000;
 
+/** 稿件自動存檔 debounce（毫秒） */
+const MANUSCRIPT_SAVE_DEBOUNCE_MS = 300;
+
 export default function TelePrompter() {
   // 狀態管理
   const [text, setText] = useState(DEFAULT_TEXT);
+  /** 本機稿件是否已於掛載後讀取完成（避免還原前覆寫 localStorage） */
+  const [manuscriptHydrated, setManuscriptHydrated] = useState(false);
   const [isMirrored, setIsMirrored] = useState(DEFAULT_IS_MIRRORED);
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const [wpm, setWpm] = useState(DEFAULT_WPM);
@@ -117,6 +123,40 @@ export default function TelePrompter() {
 
   const clockRef = useRef<IntervalId | null>(null);
   const progressIntervalRef = useRef<IntervalId | null>(null);
+  const textRef = useRef(text);
+  textRef.current = text;
+
+  // 掛載後從本機還原稿件（與 SSR 首屏一致，避免 hydration mismatch）
+  useEffect(() => {
+    const loaded = loadManuscript();
+    if (loaded !== null && loaded.length > 0) {
+      setText(loaded);
+    }
+    setManuscriptHydrated(true);
+  }, []);
+
+  // 還原完成後：debounce 寫入；關閉分頁／隱藏時立即補寫
+  useEffect(() => {
+    if (!manuscriptHydrated) return;
+    const id = window.setTimeout(() => {
+      saveManuscript(textRef.current);
+    }, MANUSCRIPT_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [text, manuscriptHydrated]);
+
+  useEffect(() => {
+    if (!manuscriptHydrated) return;
+    const flush = () => saveManuscript(textRef.current);
+    window.addEventListener("beforeunload", flush);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [manuscriptHydrated]);
 
   // 智慧切分邏輯
   const processedLines = useMemo(() => {

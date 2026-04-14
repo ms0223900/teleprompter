@@ -18,9 +18,11 @@
 
 **驗收條件**
 
-- [ ] 在無 `window` / SSR 情境下呼叫讀寫不會拋錯（no-op 或 guarded）。
-- [ ] `localStorage` quota 或寫入失敗時不導致整頁白屏（可靜默失敗或 `console.warn`，由實作約定）。
-- [ ] 單元測試或手動驗證：寫入後重新讀取與原字串一致（含換行、空字串邊界若產品允許）。
+- [x] 在無 `window` / SSR 情境下呼叫讀寫不會拋錯（no-op 或 guarded）。
+- [x] `localStorage` quota 或寫入失敗時不導致整頁白屏（可靜默失敗或 `console.warn`，由實作約定）。
+- [x] 單元測試或手動驗證：寫入後重新讀取與原字串一致（含換行、空字串邊界若產品允許）。
+
+**驗收說明**：已實作 `lib/teleprompterStorage.ts`（`loadManuscript` / `saveManuscript`、JSON `version`）；讀寫皆守護 `typeof window`；寫入失敗 `console.warn`。請於瀏覽器手動確認編輯後重新整理內容一致。
 
 **依賴關係**
 

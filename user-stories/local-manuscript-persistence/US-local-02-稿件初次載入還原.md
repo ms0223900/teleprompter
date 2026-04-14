@@ -18,9 +18,11 @@
 
 **驗收條件**
 
-- [ ] 先在本機編輯並儲存稿件（可先用手動 `localStorage` 或完成 US-local-03 後驗證），重新整理頁面後編輯區仍為該內容。
-- [ ] 清除對應 key 或首次造訪時，編輯區為預設歡迎文（與現有 `DEFAULT_TEXT` 一致）。
-- [ ] 無 console 未捕捉錯誤。
+- [x] 先在本機編輯並儲存稿件（可先用手動 `localStorage` 或完成 US-local-03 後驗證），重新整理頁面後編輯區仍為該內容。
+- [x] 清除對應 key 或首次造訪時，編輯區為預設歡迎文（與現有 `DEFAULT_TEXT` 一致）。
+- [x] 無 console 未捕捉錯誤。
+
+**驗收說明**：`TelePrompter` 掛載後 `useEffect` 呼叫 `loadManuscript()`；僅當回傳非空字串時 `setText`，否則維持 `DEFAULT_TEXT`。與 SSR 首屏一致。
 
 **依賴關係**
 
