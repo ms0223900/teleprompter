@@ -1,20 +1,6 @@
 "use client";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Clock, FileText,
-  FlipHorizontal,
-  Hourglass,
-  Pause,
-  Play,
-  RotateCcw,
-  Scissors,
-  Settings2,
-  Timer,
-  Type,
-  X
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type IntervalId = ReturnType<typeof setInterval>;
