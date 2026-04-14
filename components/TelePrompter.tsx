@@ -62,21 +62,58 @@ function autoWrapText(content: string, size: number, width: number): string[] {
   return finalLines;
 }
 
+/** 預設語速（字／分） */
+const DEFAULT_WPM = 170;
+
+/** 預設字體大小（px） */
+const DEFAULT_FONT_SIZE = 42;
+
+/** 預設稿文 */
+const DEFAULT_TEXT =
+
+  "歡迎使用智慧斷句提詞器！\n\n這是一個非常強大的功能。系統會自動偵測目前的螢幕寬度與字體大小，將過長的段落自動切分為適合的一行。這樣你就不需要手動按 Enter 來換行了。\n\n即使是很長很長的一段話，只要我們開啟了智慧斷句，它就會優先尋找標點符號，並確保每一行都不會超出螢幕範圍。試著調整看看字體大小，你會發現每一行的字數會自動隨之調整！";
+/** 是否鏡像顯示 */
+const DEFAULT_IS_MIRRORED = false;
+
+/** 是否處於自動捲動播放中 */
+const DEFAULT_IS_SCROLLING = false;
+
+/** 初始模式：`edit` 編輯／`play` 播放 */
+const DEFAULT_MODE = "edit" as const;
+
+/** 目前高亮行索引 */
+const DEFAULT_CURRENT_LINE_INDEX = 0;
+
+/** 播放經過時間（秒） */
+const DEFAULT_ELAPSED_TIME = 0;
+
+/** 是否展開設定面板 */
+const DEFAULT_SHOW_SETTINGS = false;
+
+/** 智慧斷句（自動換行切行）是否開啟 */
+const DEFAULT_AUTO_WRAP = true;
+
+/** 目前行內進度（毫秒） */
+const DEFAULT_LINE_PROGRESS_MS = 0;
+
+/** 容器參考寬度（px），供斷句量測；實際會由 DOM 更新 */
+const DEFAULT_CONTAINER_WIDTH = 1000;
+
 export default function TelePrompter() {
   // 狀態管理
-  const [text, setText] = useState("歡迎使用智慧斷句提詞器！\n\n這是一個非常強大的功能。系統會自動偵測目前的螢幕寬度與字體大小，將過長的段落自動切分為適合的一行。這樣你就不需要手動按 Enter 來換行了。\n\n即使是很長很長的一段話，只要我們開啟了智慧斷句，它就會優先尋找標點符號，並確保每一行都不會超出螢幕範圍。試著調整看看字體大小，你會發現每一行的字數會自動隨之調整！");
-  const [isMirrored, setIsMirrored] = useState(false);
-  const [fontSize, setFontSize] = useState(42);
-  const [wpm, setWpm] = useState(150);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [mode, setMode] = useState('edit');
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
-  const [autoWrap, setAutoWrap] = useState(true); // 自動智慧斷句開關
+  const [text, setText] = useState(DEFAULT_TEXT);
+  const [isMirrored, setIsMirrored] = useState(DEFAULT_IS_MIRRORED);
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
+  const [wpm, setWpm] = useState(DEFAULT_WPM);
+  const [isScrolling, setIsScrolling] = useState(DEFAULT_IS_SCROLLING);
+  const [mode, setMode] = useState<"edit" | "play">(DEFAULT_MODE);
+  const [currentLineIndex, setCurrentLineIndex] = useState(DEFAULT_CURRENT_LINE_INDEX);
+  const [elapsedTime, setElapsedTime] = useState(DEFAULT_ELAPSED_TIME);
+  const [showSettings, setShowSettings] = useState(DEFAULT_SHOW_SETTINGS);
+  const [autoWrap, setAutoWrap] = useState(DEFAULT_AUTO_WRAP); // 自動智慧斷句開關
 
-  const [lineProgressMs, setLineProgressMs] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(1000); // 容器參考寬度
+  const [lineProgressMs, setLineProgressMs] = useState(DEFAULT_LINE_PROGRESS_MS);
+  const [containerWidth, setContainerWidth] = useState(DEFAULT_CONTAINER_WIDTH); // 容器參考寬度
 
   const clockRef = useRef<IntervalId | null>(null);
   const progressIntervalRef = useRef<IntervalId | null>(null);
