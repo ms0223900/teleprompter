@@ -191,7 +191,7 @@ export default function TelePrompter() {
 
   // 5. 當前行所需總毫秒數
   const currentLineDuration = useMemo(() => {
-    const charCount = getCleanCharCount(processedLines[currentLineIndex] || "");
+    const charCount = (processedLines[currentLineIndex] || "").length;
     return charCount <= 0 ? 1000 : (charCount / wpm) * 60 * 1000;
   }, [currentLineIndex, processedLines, wpm]);
 
