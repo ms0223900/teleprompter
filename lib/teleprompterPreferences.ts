@@ -1,3 +1,5 @@
+import { readJsonFromLocalStorage, writeJsonToLocalStorage } from "./teleprompterLocalStorage";
+
 /** 與稿件分開；schema 升版可改 key 或於讀取時遷移 */
 export const PREFERENCES_STORAGE_KEY = "teleprompter:preferences:v1";
 
@@ -53,35 +55,24 @@ function isValidPreferences(value: unknown): value is TeleprompterPreferences {
  * 僅在瀏覽器環境存取 `localStorage`；SSR 下為 no-op，回傳 `null`。
  */
 export function loadPreferences(): TeleprompterPreferences | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (raw === null) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return null;
-    if (!("version" in parsed)) return null;
-    const { version } = parsed as { version: unknown };
-    if (version !== PREFERENCES_VERSION) return null;
-    if (!isValidPreferences(parsed)) return null;
-    const { wpm, fontSize, isMirrored, autoWrap } = parsed as StoredPreferences;
-    return { wpm, fontSize, isMirrored, autoWrap };
-  } catch {
-    return null;
-  }
+  const parsed = readJsonFromLocalStorage(PREFERENCES_STORAGE_KEY);
+  if (parsed === null) return null;
+  if (typeof parsed !== "object" || parsed === null) return null;
+  if (!("version" in parsed)) return null;
+  const { version } = parsed as { version: unknown };
+  if (version !== PREFERENCES_VERSION) return null;
+  if (!isValidPreferences(parsed)) return null;
+  const { wpm, fontSize, isMirrored, autoWrap } = parsed as StoredPreferences;
+  return { wpm, fontSize, isMirrored, autoWrap };
 }
 
 /**
  * 將完整偏好寫入本機。寫入失敗時僅 `console.warn`，不拋錯。
  */
 export function savePreferences(prefs: TeleprompterPreferences): void {
-  if (typeof window === "undefined") return;
-  try {
-    const payload: StoredPreferences = {
-      version: PREFERENCES_VERSION,
-      ...prefs,
-    };
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(payload));
-  } catch (e) {
-    console.warn("[teleprompter] Failed to save preferences:", e);
-  }
+  const payload: StoredPreferences = {
+    version: PREFERENCES_VERSION,
+    ...prefs,
+  };
+  writeJsonToLocalStorage(PREFERENCES_STORAGE_KEY, payload, "preferences");
 }

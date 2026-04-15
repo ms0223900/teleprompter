@@ -3,6 +3,7 @@
 import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
 import { loadPreferences, savePreferences } from "@/lib/teleprompterPreferences";
 import { loadManuscript, saveManuscript } from "@/lib/teleprompterStorage";
+import { useFlushOnHide } from "@/lib/useFlushOnHide";
 import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -175,19 +176,12 @@ export default function TelePrompter() {
     savePreferences(prefsSnapshotRef.current);
   }, [isMirrored, autoWrap, preferencesHydrated]);
 
-  useEffect(() => {
-    if (!preferencesHydrated) return;
-    const flush = () => savePreferences(prefsSnapshotRef.current);
-    window.addEventListener("beforeunload", flush);
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") flush();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      window.removeEventListener("beforeunload", flush);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [preferencesHydrated]);
+  useFlushOnHide(
+    () => {
+      savePreferences(prefsSnapshotRef.current);
+    },
+    preferencesHydrated,
+  );
 
   // 還原完成後：debounce 寫入；關閉分頁／隱藏時立即補寫
   useEffect(() => {
@@ -198,19 +192,12 @@ export default function TelePrompter() {
     return () => clearTimeout(id);
   }, [text, manuscriptHydrated]);
 
-  useEffect(() => {
-    if (!manuscriptHydrated) return;
-    const flush = () => saveManuscript(textRef.current);
-    window.addEventListener("beforeunload", flush);
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") flush();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      window.removeEventListener("beforeunload", flush);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [manuscriptHydrated]);
+  useFlushOnHide(
+    () => {
+      saveManuscript(textRef.current);
+    },
+    manuscriptHydrated,
+  );
 
   // 智慧切分邏輯（先合併「僅標點」獨立行，再依 autoWrap 切行）
   const processedLines = useMemo(() => {
