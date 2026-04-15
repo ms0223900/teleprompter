@@ -4,7 +4,7 @@ import {
   PREFERENCES_STORAGE_KEY,
   savePreferences,
   type TeleprompterPreferences,
-} from "./teleprompterPreferences";
+} from "./preferences";
 
 function installBrowserLikeGlobals() {
   const map = new Map<string, string>();
@@ -41,7 +41,7 @@ function removeBrowserLikeGlobals() {
   Reflect.deleteProperty(globalThis, "localStorage");
 }
 
-describe("teleprompterPreferences", () => {
+describe("storage/preferences", () => {
   const sample: TeleprompterPreferences = {
     wpm: 120,
     fontSize: 42,

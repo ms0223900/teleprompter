@@ -1,4 +1,4 @@
-import { readJsonFromLocalStorage, writeJsonToLocalStorage } from "./teleprompterLocalStorage";
+import { readJsonFromLocalStorage, writeJsonToLocalStorage } from "./localStorageJson";
 
 /** 與稿件分開；schema 升版可改 key 或於讀取時遷移 */
 export const PREFERENCES_STORAGE_KEY = "teleprompter:preferences:v1";

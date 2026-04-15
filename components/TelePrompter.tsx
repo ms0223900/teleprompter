@@ -1,8 +1,13 @@
 "use client";
 
 import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
-import { loadPreferences, savePreferences } from "@/lib/teleprompterPreferences";
-import { loadManuscript, saveManuscript } from "@/lib/teleprompterStorage";
+import {
+  loadManuscript,
+  loadPreferences,
+  saveManuscript,
+  savePreferences,
+} from "@/lib/storage";
+import { useDebouncedPersist } from "@/lib/useDebouncedPersist";
 import { useFlushOnHide } from "@/lib/useFlushOnHide";
 import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -161,14 +166,15 @@ export default function TelePrompter() {
     setPreferencesHydrated(true);
   }, []);
 
-  // 偏好還原完成後：滑桿 debounce 寫入
-  useEffect(() => {
-    if (!preferencesHydrated) return;
-    const id = window.setTimeout(() => {
+  useDebouncedPersist(
+    () => {
       savePreferences(prefsSnapshotRef.current);
-    }, PREFERENCES_SAVE_DEBOUNCE_MS);
-    return () => clearTimeout(id);
-  }, [wpm, fontSize, preferencesHydrated]);
+    },
+    preferencesHydrated,
+    PREFERENCES_SAVE_DEBOUNCE_MS,
+    wpm,
+    fontSize,
+  );
 
   // 切換類偏好：即時寫入
   useEffect(() => {
@@ -183,14 +189,14 @@ export default function TelePrompter() {
     preferencesHydrated,
   );
 
-  // 還原完成後：debounce 寫入；關閉分頁／隱藏時立即補寫
-  useEffect(() => {
-    if (!manuscriptHydrated) return;
-    const id = window.setTimeout(() => {
+  useDebouncedPersist(
+    () => {
       saveManuscript(textRef.current);
-    }, MANUSCRIPT_SAVE_DEBOUNCE_MS);
-    return () => clearTimeout(id);
-  }, [text, manuscriptHydrated]);
+    },
+    manuscriptHydrated,
+    MANUSCRIPT_SAVE_DEBOUNCE_MS,
+    text,
+  );
 
   useFlushOnHide(
     () => {

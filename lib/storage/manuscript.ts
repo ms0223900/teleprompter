@@ -1,4 +1,4 @@
-import { readJsonFromLocalStorage, writeJsonToLocalStorage } from "./teleprompterLocalStorage";
+import { readJsonFromLocalStorage, writeJsonToLocalStorage } from "./localStorageJson";
 
 /** localStorage key；若 schema 升版可改 key 或於讀取時遷移 */
 export const MANUSCRIPT_STORAGE_KEY = "teleprompter:manuscript:v1";

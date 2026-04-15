@@ -16,7 +16,7 @@
 
 **輸出格式**
 
-- 擴充既有 `lib/teleprompterStorage.ts` 或新增同層模組（例如 `lib/teleprompterPreferences.ts`），至少提供：
+- 擴充既有稿件儲存模組或新增同層模組（例如 `lib/storage/preferences.ts`，並自 `@/lib/storage` 匯出），至少提供：
   - `loadPreferences(): TeleprompterPreferences | null` — 無資料、版本不符或損毀時回傳 `null`（由呼叫端使用預設值）。
   - `savePreferences(prefs: TeleprompterPreferences): void` — 寫入完整偏好物件。
 - 內部使用 JSON 包一層 `{ version: number, ...fields }` 以利未來擴充；讀取時欄位型別不符則回傳 `null` 或安全降級（與稿件儲存層風格一致）。
@@ -29,7 +29,7 @@
 
 **驗收說明**
 
-- 實作：`lib/teleprompterPreferences.ts`（`PREFERENCES_STORAGE_KEY`、`loadPreferences`、`savePreferences`、`TeleprompterPreferences`）；測試：`lib/teleprompterPreferences.test.ts`。
+- 實作：`lib/storage/preferences.ts`（`PREFERENCES_STORAGE_KEY`、`loadPreferences`、`savePreferences`、`TeleprompterPreferences`）；公開匯入：`@/lib/storage`；測試：`lib/storage/preferences.test.ts`。
 - 手動：於瀏覽器開啟 App，調整偏好後在 Application → Local Storage 確認 `teleprompter:preferences:v1` 為 `{ version: 1, wpm, fontSize, isMirrored, autoWrap }`。
 
 **依賴關係**
