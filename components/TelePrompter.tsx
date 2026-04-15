@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
 import { loadManuscript, saveManuscript } from "@/lib/teleprompterStorage";
 import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -156,12 +157,13 @@ export default function TelePrompter() {
     };
   }, [manuscriptHydrated]);
 
-  // 智慧切分邏輯
+  // 智慧切分邏輯（先合併「僅標點」獨立行，再依 autoWrap 切行）
   const processedLines = useMemo(() => {
+    const playbackText = normalizeManuscriptLinesForPlayback(text);
     if (!autoWrap) {
-      return text.split('\n').filter(line => line.trim().length > 0);
+      return playbackText.split("\n").filter((line) => line.trim().length > 0);
     }
-    return autoWrapText(text, fontSize, containerWidth);
+    return autoWrapText(playbackText, fontSize, containerWidth);
   }, [text, fontSize, containerWidth, autoWrap]);
 
   // 監聽容器寬度變化
