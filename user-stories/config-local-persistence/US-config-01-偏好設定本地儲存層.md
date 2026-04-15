@@ -23,11 +23,14 @@
 
 **驗收條件**
 
-- [ ] 在無 `window` / SSR 情境下呼叫讀寫不會拋錯（no-op 或 guarded）。
-- [ ] `localStorage` quota 或寫入失敗時不導致整頁白屏（可靜默失敗或 `console.warn`，與稿件層一致）。
-- [ ] 單元測試：寫入後重新讀取與原物件語意一致（含邊界：預設值與非法存檔時回 `null`）。
+- [x] 在無 `window` / SSR 情境下呼叫讀寫不會拋錯（no-op 或 guarded）。
+- [x] `localStorage` quota 或寫入失敗時不導致整頁白屏（可靜默失敗或 `console.warn`，與稿件層一致）。
+- [x] 單元測試：寫入後重新讀取與原物件語意一致（含邊界：預設值與非法存檔時回 `null`）。
 
-**驗收說明**：（實作完成後由實作者補上檔案路徑與手動驗證要點）
+**驗收說明**
+
+- 實作：`lib/teleprompterPreferences.ts`（`PREFERENCES_STORAGE_KEY`、`loadPreferences`、`savePreferences`、`TeleprompterPreferences`）；測試：`lib/teleprompterPreferences.test.ts`。
+- 手動：於瀏覽器開啟 App，調整偏好後在 Application → Local Storage 確認 `teleprompter:preferences:v1` 為 `{ version: 1, wpm, fontSize, isMirrored, autoWrap }`。
 
 **依賴關係**
 

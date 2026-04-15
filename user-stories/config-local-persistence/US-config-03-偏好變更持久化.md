@@ -19,11 +19,14 @@
 
 **驗收條件**
 
-- [ ] 調整語速或字體後重新整理，數值仍保留。
-- [ ] 切換鏡像、智慧斷句後重新整理，狀態仍保留。
-- [ ] 在還原完成前不會用預設值覆寫既有 `localStorage` 偏好。
+- [x] 調整語速或字體後重新整理，數值仍保留。
+- [x] 切換鏡像、智慧斷句後重新整理，狀態仍保留。
+- [x] 在還原完成前不會用預設值覆寫既有 `localStorage` 偏好。
 
-**驗收說明**：（實作完成後由實作者補上）
+**驗收說明**
+
+- 實作：`preferencesHydrated === true` 後才寫入；`wpm`／`fontSize` 以 250ms debounce 呼叫 `savePreferences`；`isMirrored`／`autoWrap` 變更即寫入；`beforeunload`／`visibilitychange` 補寫最後快照（與稿件層一致）。
+- 手動：先備份既有偏好 key，調整各項後重新整理確認保留；可於還原完成前暫不觸發寫入（僅在 `preferencesHydrated` 後寫入）。
 
 **依賴關係**
 

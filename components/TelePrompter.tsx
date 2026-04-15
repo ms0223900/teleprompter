@@ -1,6 +1,7 @@
 "use client";
 
 import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
+import { loadPreferences, savePreferences } from "@/lib/teleprompterPreferences";
 import { loadManuscript, saveManuscript } from "@/lib/teleprompterStorage";
 import { ChevronLeft, ChevronRight, Clock, FileText, FlipHorizontal, Hourglass, Pause, Play, RotateCcw, Scissors, Settings2, Timer, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -102,11 +103,16 @@ const DEFAULT_CONTAINER_WIDTH = 1000;
 /** 稿件自動存檔 debounce（毫秒） */
 const MANUSCRIPT_SAVE_DEBOUNCE_MS = 300;
 
+/** 偏好（語速／字體滑桿）寫入 debounce（毫秒） */
+const PREFERENCES_SAVE_DEBOUNCE_MS = 250;
+
 export default function TelePrompter() {
   // 狀態管理
   const [text, setText] = useState(DEFAULT_TEXT);
   /** 本機稿件是否已於掛載後讀取完成（避免還原前覆寫 localStorage） */
   const [manuscriptHydrated, setManuscriptHydrated] = useState(false);
+  /** 本機偏好是否已於掛載後讀取完成（避免還原前以預設值覆寫偏好存檔） */
+  const [preferencesHydrated, setPreferencesHydrated] = useState(false);
   const [isMirrored, setIsMirrored] = useState(DEFAULT_IS_MIRRORED);
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const [wpm, setWpm] = useState(DEFAULT_WPM);
@@ -125,6 +131,14 @@ export default function TelePrompter() {
   const textRef = useRef(text);
   textRef.current = text;
 
+  const prefsSnapshotRef = useRef({
+    wpm: DEFAULT_WPM,
+    fontSize: DEFAULT_FONT_SIZE,
+    isMirrored: DEFAULT_IS_MIRRORED,
+    autoWrap: DEFAULT_AUTO_WRAP,
+  });
+  prefsSnapshotRef.current = { wpm, fontSize, isMirrored, autoWrap };
+
   // 掛載後從本機還原稿件（與 SSR 首屏一致，避免 hydration mismatch）
   useEffect(() => {
     const loaded = loadManuscript();
@@ -133,6 +147,47 @@ export default function TelePrompter() {
     }
     setManuscriptHydrated(true);
   }, []);
+
+  // 掛載後從本機還原偏好（僅 client；與預設首屏一致，避免 hydration mismatch）
+  useEffect(() => {
+    const loaded = loadPreferences();
+    if (loaded !== null) {
+      setWpm(loaded.wpm);
+      setFontSize(loaded.fontSize);
+      setIsMirrored(loaded.isMirrored);
+      setAutoWrap(loaded.autoWrap);
+    }
+    setPreferencesHydrated(true);
+  }, []);
+
+  // 偏好還原完成後：滑桿 debounce 寫入
+  useEffect(() => {
+    if (!preferencesHydrated) return;
+    const id = window.setTimeout(() => {
+      savePreferences(prefsSnapshotRef.current);
+    }, PREFERENCES_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [wpm, fontSize, preferencesHydrated]);
+
+  // 切換類偏好：即時寫入
+  useEffect(() => {
+    if (!preferencesHydrated) return;
+    savePreferences(prefsSnapshotRef.current);
+  }, [isMirrored, autoWrap, preferencesHydrated]);
+
+  useEffect(() => {
+    if (!preferencesHydrated) return;
+    const flush = () => savePreferences(prefsSnapshotRef.current);
+    window.addEventListener("beforeunload", flush);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [preferencesHydrated]);
 
   // 還原完成後：debounce 寫入；關閉分頁／隱藏時立即補寫
   useEffect(() => {
