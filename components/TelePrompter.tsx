@@ -1,5 +1,7 @@
 "use client";
 
+import LabeledTextarea from "@/components/LabeledTextarea";
+import { stripLabels } from "@/lib/labels/stripLabels";
 import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
 import {
   loadManuscript,
@@ -70,6 +72,12 @@ function autoWrapText(content: string, size: number, width: number): string[] {
 
   return finalLines;
 }
+
+/**
+ * 播放／統計用的標籤剝除置換字元。
+ * 預設空字串（標籤消失）；如要讓標籤自然成為斷行點，改為 `"\n"` 即可。
+ */
+const LABEL_PLAYBACK_REPLACEMENT = "";
 
 /** 預設語速（字／分） */
 const DEFAULT_WPM = 170;
@@ -205,14 +213,20 @@ export default function TelePrompter() {
     manuscriptHydrated,
   );
 
+  // 播放／統計來源文字：先剝除標籤（`[labelName]`），使其不入鏡。
+  const playbackSourceText = useMemo(
+    () => stripLabels(text, LABEL_PLAYBACK_REPLACEMENT),
+    [text],
+  );
+
   // 智慧切分邏輯（先合併「僅標點」獨立行，再依 autoWrap 切行）
   const processedLines = useMemo(() => {
-    const playbackText = normalizeManuscriptLinesForPlayback(text);
+    const playbackText = normalizeManuscriptLinesForPlayback(playbackSourceText);
     if (!autoWrap) {
       return playbackText.split("\n").filter((line) => line.trim().length > 0);
     }
     return autoWrapText(playbackText, fontSize, containerWidth);
-  }, [text, fontSize, containerWidth, autoWrap]);
+  }, [playbackSourceText, fontSize, containerWidth, autoWrap]);
 
   // 監聽容器寬度變化
   useEffect(() => {
@@ -232,12 +246,12 @@ export default function TelePrompter() {
     return str.replace(regex, '').length;
   };
 
-  // 4. 計算總統計數據
+  // 4. 計算總統計數據（以剝除標籤後的文字為準）
   const stats = useMemo(() => {
-    const totalChars = getCleanCharCount(text);
+    const totalChars = getCleanCharCount(playbackSourceText);
     const estimatedTotalSeconds = totalChars > 0 ? Math.ceil((totalChars / wpm) * 60) : 0;
     return { totalChars, estimatedTotalSeconds };
-  }, [text, wpm]);
+  }, [playbackSourceText, wpm]);
 
   // 5. 當前行所需總毫秒數
   const currentLineDuration = useMemo(() => {
@@ -400,11 +414,11 @@ export default function TelePrompter() {
       <main className="flex-1 relative overflow-hidden" onClick={() => setShowSettings(false)}>
         {mode === 'edit' ? (
           <div className="h-full p-6 max-w-5xl mx-auto w-full">
-            <textarea
-              className="w-full h-full bg-transparent text-gray-300 p-8 rounded-3xl border border-white/5 focus:border-blue-500/50 outline-none resize-none text-lg leading-relaxed font-mono shadow-inner transition-all"
+            <LabeledTextarea
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={setText}
               placeholder="輸入稿件內容..."
+              className="h-full w-full"
             />
           </div>
         ) : (
