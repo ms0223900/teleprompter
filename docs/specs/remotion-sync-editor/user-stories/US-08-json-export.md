@@ -22,12 +22,22 @@
 - 操作入口：側欄「匯出 JSON」按鈕 → 下載 `.json` 檔或複製到剪貼簿（兩者擇一即可，建議兩者皆有）
 
 ## 驗收條件
-- [ ] 匯出的 JSON 結構符合上述 schema
-- [ ] `startFrame` 累積正確且不重疊
-- [ ] `durationFrames` 與側欄顯示一致
-- [ ] 沒有標籤時按鈕 disabled 或給明確提示
-- [ ] 下載檔名具辨識性（例如 `sync-<timestamp>.json`）
-- [ ] 複製到剪貼簿時給成功回饋
+- [x] 匯出的 JSON 結構符合上述 schema
+- [x] `startFrame` 累積正確且不重疊
+- [x] `durationFrames` 與側欄顯示一致
+- [x] 沒有標籤時按鈕 disabled 或給明確提示
+- [x] 下載檔名具辨識性（例如 `sync-<timestamp>.json`）
+- [x] 複製到剪貼簿時給成功回饋
+
+## 驗收說明
+- 實作：
+  - `lib/timing/exportTimingsJson.ts`（`buildTimingsExport`、`formatTimingsJson`）
+  - UI 於 `components/SyncSidebar.tsx` footer 提供「複製 JSON」「下載 JSON」雙按鈕
+- JSON schema：`{ fps, wpm, segments: [{ label, startFrame, durationFrames }] }`
+- 無標籤時兩顆按鈕皆 disabled（`opacity-40 cursor-not-allowed`）
+- 成功/失敗 1.6s 浮動訊息回饋
+- 檔名：`sync-<timestamp>.json`
+- 測試：`lib/timing/exportTimingsJson.test.ts`（4 tests 全部通過）
 
 ## 依賴關係
 - US-06（即時重算 Hook）

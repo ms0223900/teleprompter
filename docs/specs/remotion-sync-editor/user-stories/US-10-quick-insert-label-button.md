@@ -26,16 +26,16 @@
 - **唯一性檢查**：若計算出的名稱剛好與既有同名（理論上不會發生，但安全起見），遞增直到不衝突
 
 ## 驗收條件
-- [ ] 按鈕存在於編輯模式可見處（側欄或編輯器上方工具列）
-- [ ] 點擊後在游標處插入 `[Step_<n>]`，n 為下一個可用編號
-- [ ] 首次使用（無任何 `Step_` 標籤）插入 `[Step_1]`
-- [ ] 已有 `[Step_1][Step_2]` → 下次為 `[Step_3]`
-- [ ] 已有 `[Step_1][Step_3]`（跳號）→ 下次為 `[Step_4]`（以最大值為基準，不回補跳號）
-- [ ] 已有不同前綴標籤（如 `[Intro]`）不影響 `Step_` 編號
-- [ ] 若 textarea 有選取文字，點擊後選取範圍被標籤覆蓋
-- [ ] 插入後游標停在標籤結尾之後
-- [ ] 插入後 textarea 保持焦點、捲動位置合理
-- [ ] 單元測試涵蓋「下一個編號」計算函式
+- [x] 按鈕存在於編輯模式可見處（側欄或編輯器上方工具列）
+- [x] 點擊後在游標處插入 `[Step_<n>]`，n 為下一個可用編號
+- [x] 首次使用（無任何 `Step_` 標籤）插入 `[Step_1]`
+- [x] 已有 `[Step_1][Step_2]` → 下次為 `[Step_3]`
+- [x] 已有 `[Step_1][Step_3]`（跳號）→ 下次為 `[Step_4]`（以最大值為基準，不回補跳號）
+- [x] 已有不同前綴標籤（如 `[Intro]`）不影響 `Step_` 編號
+- [x] 若 textarea 有選取文字，點擊後選取範圍被標籤覆蓋
+- [x] 插入後游標停在標籤結尾之後
+- [x] 插入後 textarea 保持焦點、捲動位置合理
+- [x] 單元測試涵蓋「下一個編號」計算函式
 
 ## 技術設計建議
 - 抽出純函式 `lib/labels/nextLabelName.ts`
@@ -58,6 +58,16 @@
 ## 依賴關係
 - US-01（`parseLabels`、`LABEL_PATTERN`）
 - US-02（`LabeledTextarea`：需要能透過 ref 存取底層 textarea 以操作 `selectionStart`/`setRangeText`；若目前元件未暴露 ref，需小幅調整）
+
+## 驗收說明
+- 實作：
+  - `lib/labels/nextLabelName.ts`（`DEFAULT_LABEL_PREFIX = "Step_"`、`nextLabelName(text, prefix?)`）
+  - `lib/mergeRefs.ts`（多 ref 合併工具，使 `LabeledTextarea` 可同時供自用與對外暴露 textarea）
+  - `LabeledTextarea` 新增 `textareaRef` prop
+  - 按鈕位於 `SyncSidebar` header「+ 插入標籤」
+- 行為：以 `ta.selectionStart/End` 計算插入位置，`requestAnimationFrame` 內 `setSelectionRange` 以避免 React 更新前搶跑
+- 選取文字時覆蓋選取；無 focus 時 fallback 附加到文末
+- 測試：`lib/labels/nextLabelName.test.ts`（6 tests 全部通過）
 
 **優先級**：P0
 **相關需求**：PRD US-1 的體驗增強；US-07「快速開始」指引

@@ -1,8 +1,11 @@
 "use client";
 
 import LabeledTextarea from "@/components/LabeledTextarea";
+import SyncSidebar from "@/components/SyncSidebar";
 import { stripLabels } from "@/lib/labels/stripLabels";
 import { normalizeManuscriptLinesForPlayback } from "@/lib/mergePunctuationOnlyLines";
+import { countSpeechChars } from "@/lib/timing/countChars";
+import { useLabelTimings } from "@/lib/timing/useLabelTimings";
 import {
   loadManuscript,
   loadPreferences,
@@ -144,6 +147,7 @@ export default function TelePrompter() {
   const progressIntervalRef = useRef<IntervalId | null>(null);
   const textRef = useRef(text);
   textRef.current = text;
+  const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const prefsSnapshotRef = useRef({
     wpm: DEFAULT_WPM,
@@ -219,6 +223,9 @@ export default function TelePrompter() {
     [text],
   );
 
+  // Sync Editor：以原文 + WPM 計算每個標籤的幀數／秒數（debounced）
+  const labelTimings = useLabelTimings(text, wpm);
+
   // 智慧切分邏輯（先合併「僅標點」獨立行，再依 autoWrap 切行）
   const processedLines = useMemo(() => {
     const playbackText = normalizeManuscriptLinesForPlayback(playbackSourceText);
@@ -240,15 +247,9 @@ export default function TelePrompter() {
     return () => window.removeEventListener('resize', updateWidth);
   }, [mode]);
 
-  // 3. 計算純文字字數
-  const getCleanCharCount = (str: string) => {
-    const regex = /[!"#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~，。！？；：「」『』（）—…\s]/g;
-    return str.replace(regex, '').length;
-  };
-
-  // 4. 計算總統計數據（以剝除標籤後的文字為準）
+  // 4. 計算總統計數據（以剝除標籤後的文字為準；與 Sync Editor 側欄共用同一計數函式）
   const stats = useMemo(() => {
-    const totalChars = getCleanCharCount(playbackSourceText);
+    const totalChars = countSpeechChars(playbackSourceText);
     const estimatedTotalSeconds = totalChars > 0 ? Math.ceil((totalChars / wpm) * 60) : 0;
     return { totalChars, estimatedTotalSeconds };
   }, [playbackSourceText, wpm]);
@@ -413,12 +414,22 @@ export default function TelePrompter() {
       {/* 主要內容區 */}
       <main className="flex-1 relative overflow-hidden" onClick={() => setShowSettings(false)}>
         {mode === 'edit' ? (
-          <div className="h-full p-6 max-w-5xl mx-auto w-full">
-            <LabeledTextarea
-              value={text}
-              onChange={setText}
-              placeholder="輸入稿件內容..."
-              className="h-full w-full"
+          <div className="h-full flex">
+            <div className="flex-1 min-w-0 p-6">
+              <LabeledTextarea
+                value={text}
+                onChange={setText}
+                placeholder="輸入稿件內容... 使用 [Intro]、[Step_1] 等標籤標記分鏡切換點"
+                className="h-full w-full"
+                textareaRef={editorTextareaRef}
+              />
+            </div>
+            <SyncSidebar
+              text={text}
+              onTextChange={setText}
+              timings={labelTimings}
+              wpm={wpm}
+              textareaRef={editorTextareaRef}
             />
           </div>
         ) : (

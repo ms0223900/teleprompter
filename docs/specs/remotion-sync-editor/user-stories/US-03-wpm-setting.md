@@ -14,8 +14,8 @@
 - `lib/useDebouncedPersist.ts`：偏好變更後 debounce 寫入 localStorage
 
 ## 本 US 實際待辦（縮減範圍）
-- [ ] 將 `wpm` 從 `TelePrompter` 以 prop / Context 下傳給 Sync Editor 相關元件（US-06 Hook、US-07 側欄）
-- [ ] 確認 Sync Editor 模組**直接複用**既有 state，不建立第二個 WPM 來源（避免雙事實來源）
+- [x] 將 `wpm` 從 `TelePrompter` 以 prop / Context 下傳給 Sync Editor 相關元件（US-06 Hook、US-07 側欄）
+- [x] 確認 Sync Editor 模組**直接複用**既有 state，不建立第二個 WPM 來源（避免雙事實來源）
 
 ## 不需再做
 - ~~輸入欄位 / 滑桿 UI~~（已存在）
@@ -23,9 +23,9 @@
 - ~~輸入驗證 / 預設值~~（已存在）
 
 ## 驗收條件
-- [ ] Sync Editor 模組讀到的 WPM 與側邊欄滑桿同步
-- [ ] 調整滑桿後，US-07 側欄秒數/幀數即時連動
-- [ ] 不新增 localStorage key，沿用 `teleprompter:preferences:v1`
+- [x] Sync Editor 模組讀到的 WPM 與側邊欄滑桿同步
+- [x] 調整滑桿後，US-07 側欄秒數/幀數即時連動
+- [x] 不新增 localStorage key，沿用 `teleprompter:preferences:v1`
 
 ## 依賴關係
 - 無（既有功能）

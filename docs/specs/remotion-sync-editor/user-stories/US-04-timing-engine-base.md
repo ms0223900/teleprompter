@@ -34,11 +34,20 @@
 - 放置位置建議：`lib/timing/calculateFrames.ts`（新目錄，與 `lib/storage` 同層）
 
 ## 驗收條件
-- [ ] 決策 A/B 已於 PR 說明中明確記錄
-- [ ] 若採 (B)：中文、英文、中英混合、空字串皆有單元測試
-- [ ] 若採 (A)：與 `TelePrompter.tsx` L238 行為一致，並抽為共用函式被雙方消費
-- [ ] WPM 變更時輸出同步變化
-- [ ] 空字串回傳 0 frames
+- [x] 決策 A/B 已於 PR 說明中明確記錄
+- [x] 若採 (B)：中文、英文、中英混合、空字串皆有單元測試
+- [x] 若採 (A)：與 `TelePrompter.tsx` L238 行為一致，並抽為共用函式被雙方消費
+- [x] WPM 變更時輸出同步變化
+- [x] 空字串回傳 0 frames
+
+## 驗收說明
+- **決策（最終）**：採 **(A) char-based**，與 Header 既有 `getCleanCharCount` 對齊。
+  - 先前曾短暫採 (B) bilingual，但導致 Sidebar 秒數與 Header 總時長不一致（英文詞一詞多字元），使用者回饋後統一為 (A)。
+- 實作：
+  - `lib/timing/countChars.ts`：`countSpeechChars`，單一計數來源
+  - `lib/timing/calculateFrames.ts`：`countUnits` 內部轉呼叫 `countSpeechChars`
+  - `components/TelePrompter.tsx`：移除內嵌 `getCleanCharCount`，改用 `countSpeechChars`，確保 Header 與 Sidebar 永不漂移
+- 測試：`lib/timing/calculateFrames.test.ts`（11 tests 全部通過）
 
 ## 依賴關係
 - US-03（複用既有 WPM state）

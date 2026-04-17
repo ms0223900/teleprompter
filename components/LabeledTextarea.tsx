@@ -1,13 +1,16 @@
 "use client";
 
 import { LABEL_PATTERN } from "@/lib/labels/parseLabels";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { mergeRefs } from "@/lib/mergeRefs";
+import { Ref, useLayoutEffect, useMemo, useRef } from "react";
 
 type Props = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  /** 允許外部（如側欄按鈕）存取底層 textarea，用於操作游標與 `setRangeText`。 */
+  textareaRef?: Ref<HTMLTextAreaElement>;
 };
 
 type Token =
@@ -46,15 +49,20 @@ export default function LabeledTextarea({
   onChange,
   placeholder,
   className = "",
+  textareaRef: externalTextareaRef,
 }: Props) {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const internalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
+  const setTextareaRef = useMemo(
+    () => mergeRefs(internalTextareaRef, externalTextareaRef),
+    [externalTextareaRef],
+  );
 
   const tokens = useMemo(() => tokenize(value), [value]);
 
   // 同步 backdrop 捲動位置，避免打字至長文時文字與高亮錯位。
   useLayoutEffect(() => {
-    const ta = textareaRef.current;
+    const ta = internalTextareaRef.current;
     const bd = backdropRef.current;
     if (!ta || !bd) return;
     const sync = () => {
@@ -93,7 +101,7 @@ export default function LabeledTextarea({
       </div>
 
       <textarea
-        ref={textareaRef}
+        ref={setTextareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
