@@ -1,13 +1,26 @@
 "use client";
 
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { DEFAULT_LABEL_PREFIX, nextLabelName } from "@/lib/labels/nextLabelName";
+import {
+  removeLabelAtOccurrence,
+  replaceLabelAtOccurrence,
+} from "@/lib/labels/labelOccurrenceMutations";
+import { parseLabels } from "@/lib/labels/parseLabels";
 import {
   buildTimingsExport,
   formatTimingsJson,
 } from "@/lib/timing/exportTimingsJson";
 import type { LabelTiming } from "@/lib/timing/useLabelTimings";
-import { Copy, Download, HelpCircle, Plus, X } from "lucide-react";
-import { RefObject, useState } from "react";
+import { Copy, Download, HelpCircle, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 function makeExportFilename(): string {
   return `sync-${Date.now()}.json`;
@@ -34,6 +47,70 @@ export default function SyncSidebar({
 }: Props) {
   const [showHelp, setShowHelp] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
+
+  const parsedLabels = useMemo(() => parseLabels(text), [text]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [draftName, setDraftName] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const deleteTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const editingRowRef = useRef<HTMLLIElement | null>(null);
+
+  const cancelEdit = useCallback(() => {
+    setEditingIndex(null);
+    setDraftName("");
+    setEditError(null);
+  }, []);
+
+  const submitEdit = useCallback(() => {
+    if (editingIndex === null) return;
+    const result = replaceLabelAtOccurrence(text, editingIndex, draftName);
+    if (!result.ok) {
+      setEditError(result.message);
+      return;
+    }
+    onTextChange(result.text);
+    cancelEdit();
+  }, [cancelEdit, draftName, editingIndex, onTextChange, text]);
+
+  useEffect(() => {
+    if (editingIndex === null) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = editingRowRef.current;
+      if (el && !el.contains(e.target as Node)) {
+        cancelEdit();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [editingIndex, cancelEdit]);
+
+  const startEdit = (index: number, currentName: string) => {
+    setEditingIndex(index);
+    setDraftName(currentName);
+    setEditError(null);
+  };
+
+  const openDeleteDialog = (index: number, trigger: HTMLButtonElement) => {
+    deleteTriggerRef.current = trigger;
+    setDeleteIndex(index);
+    setDeleteOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteOpen(false);
+    setDeleteIndex(null);
+  };
+
+  const confirmDelete = () => {
+    if (deleteIndex === null) return;
+    onTextChange(removeLabelAtOccurrence(text, deleteIndex));
+    closeDeleteDialog();
+  };
+
+  const deleteLabelName =
+    deleteIndex !== null ? parsedLabels[deleteIndex]?.label ?? "" : "";
 
   const insertLabel = () => {
     const ta = textareaRef.current;
@@ -84,11 +161,14 @@ export default function SyncSidebar({
     setTimeout(() => setExportMsg(null), 1600);
   }
 
-  const hasTimings = timings.length > 0;
+  const hasLabels = parsedLabels.length > 0;
   const { segments } = buildTimingsExport(timings, wpm);
+  const timingsInSync = timings.length === parsedLabels.length && timings.length > 0;
+  const hasTimings = timings.length > 0;
+  const exportReady = hasTimings && timingsInSync;
 
   return (
-    <aside className="w-full md:w-96 shrink-0 h-full border-l border-white/5 bg-gray-900/30 backdrop-blur-sm flex flex-col overflow-hidden">
+    <aside className="w-full md:w-96 shrink-0 h-full border-l border-white/5 bg-gray-900/30 backdrop-blur-sm flex flex-col overflow-hidden relative">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <h2 className="text-sm font-semibold text-gray-200">Sync Editor</h2>
@@ -116,31 +196,109 @@ export default function SyncSidebar({
       <div className="flex-1 overflow-y-auto">
         {showHelp && <HelpPopover onClose={() => setShowHelp(false)} />}
 
-        {!hasTimings ? (
+        {!hasLabels ? (
           <UsageGuide />
         ) : (
           <ul className="divide-y divide-white/5">
-            {timings.map((t, i) => (
-              <li key={`${t.label}-${i}`} className="px-4 py-3 hover:bg-white/5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-mono text-blue-300 font-semibold text-sm truncate">
-                    [{t.label}]
-                  </span>
-                  <span
-                    className={`font-mono text-xs ${severityClass(t.seconds)}`}
-                  >
-                    {t.seconds.toFixed(1)}s
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center gap-3 text-[11px] font-mono text-gray-500">
-                  <span title="字／詞數">{t.units} u</span>
-                  <span title="段落長度（frames）">{t.durationFrames}f</span>
-                  <span title="起始幀" className="ml-auto">
-                    @{t.startFrame}
-                  </span>
-                </div>
-              </li>
-            ))}
+            {parsedLabels.map((pl, i) => {
+              const t = timings[i];
+              const displayName = pl.label;
+              const isEditing = editingIndex === i;
+              return (
+                <li
+                  key={`${pl.startIndex}-${i}`}
+                  ref={isEditing ? editingRowRef : undefined}
+                  className="px-4 py-3 hover:bg-white/5"
+                >
+                  <div className="flex items-baseline justify-between gap-2 min-w-0">
+                    {isEditing ? (
+                      <div className="min-w-0 flex-1 flex flex-col gap-1">
+                        <input
+                          autoFocus
+                          value={draftName}
+                          onChange={(e) => {
+                            setDraftName(e.target.value);
+                            setEditError(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              e.preventDefault();
+                              cancelEdit();
+                            } else if (e.key === "Enter") {
+                              e.preventDefault();
+                              submitEdit();
+                            }
+                          }}
+                          className="w-full min-w-0 max-w-full rounded px-2 py-1 text-sm font-mono font-semibold text-blue-200 bg-black/40 border border-white/15 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          aria-invalid={!!editError}
+                          aria-describedby={editError ? `edit-err-${i}` : undefined}
+                        />
+                        {editError && (
+                          <p id={`edit-err-${i}`} className="text-[11px] text-rose-400">
+                            {editError}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onDoubleClick={() => startEdit(i, displayName)}
+                        className="font-mono text-blue-300 font-semibold text-sm truncate text-left min-w-0 flex-1 hover:underline underline-offset-2"
+                        title="雙擊編輯名稱"
+                      >
+                        [{displayName}]
+                      </button>
+                    )}
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {!isEditing && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => startEdit(i, displayName)}
+                            className="p-1 rounded text-gray-500 hover:text-blue-300 hover:bg-white/5 transition"
+                            title="編輯標籤名稱"
+                            aria-label="編輯標籤名稱"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => openDeleteDialog(i, e.currentTarget)}
+                            className="p-1 rounded text-gray-500 hover:text-rose-400 hover:bg-white/5 transition"
+                            title="刪除此標籤"
+                            aria-label="刪除此標籤"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
+                      {t ? (
+                        <span
+                          className={`font-mono text-xs ml-1 ${severityClass(t.seconds)}`}
+                        >
+                          {t.seconds.toFixed(1)}s
+                        </span>
+                      ) : (
+                        <span className="font-mono text-xs ml-1 text-gray-600">…</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-3 text-[11px] font-mono text-gray-500">
+                    {t ? (
+                      <>
+                        <span title="字／詞數">{t.units} u</span>
+                        <span title="段落長度（frames）">{t.durationFrames}f</span>
+                        <span title="起始幀" className="ml-auto">
+                          @{t.startFrame}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-600">統計更新中…</span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -150,14 +308,16 @@ export default function SyncSidebar({
         <div className="flex gap-2">
           <button
             onClick={copyJson}
-            disabled={!hasTimings}
+            disabled={!exportReady}
+            title={!exportReady && hasLabels ? "統計計算中，請稍候再試" : undefined}
             className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             <Copy size={13} /> 複製 JSON
           </button>
           <button
             onClick={downloadJson}
-            disabled={!hasTimings}
+            disabled={!exportReady}
+            title={!exportReady && hasLabels ? "統計計算中，請稍候再試" : undefined}
             className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             <Download size={13} /> 下載 JSON
@@ -166,12 +326,25 @@ export default function SyncSidebar({
         {exportMsg && (
           <p className="text-[11px] text-blue-400 text-center">{exportMsg}</p>
         )}
-        {hasTimings && (
+        {exportReady && (
           <p className="text-[10px] text-gray-600 text-center font-mono">
             fps 30 · wpm {wpm} · {segments.length} segments
           </p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        title="刪除標籤"
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDelete}
+        returnFocusRef={deleteTriggerRef}
+      >
+        <p>
+          確定要刪除「<span className="font-mono text-blue-300">{deleteLabelName}</span>
+          」嗎？此標籤在文稿中的該次出現會被移除，並影響分鏡統計。
+        </p>
+      </ConfirmDialog>
     </aside>
   );
 }

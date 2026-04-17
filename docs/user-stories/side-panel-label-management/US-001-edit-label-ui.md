@@ -22,13 +22,17 @@
 
 ## 驗收條件
 
-- [ ] Label 列表每個項目顯示「編輯」圖示（鉛筆或類似符號）
-- [ ] 點擊編輯圖示或雙擊 Label 文字後，文字區塊替換為 `<input>` 欄位
-- [ ] Input 欄位預填當前 Label 名稱，並自動聚焦（`autoFocus`）
-- [ ] 按 `Enter` 呼叫儲存流程（onSave callback / dispatch）
-- [ ] 按 `Esc` 或點擊欄位外部，取消編輯並還原原始顯示
-- [ ] Input 欄位寬度不超出側邊面板容器（Responsive）
-- [ ] 同一時間只有一個 Label 可處於編輯狀態
+- [x] Label 列表每個項目顯示「編輯」圖示（鉛筆或類似符號）
+- [x] 點擊編輯圖示或雙擊 Label 文字後，文字區塊替換為 `<input>` 欄位
+- [x] Input 欄位預填當前 Label 名稱，並自動聚焦（`autoFocus`）
+- [x] 按 `Enter` 呼叫儲存流程（onSave callback / dispatch）
+- [x] 按 `Esc` 或點擊欄位外部，取消編輯並還原原始顯示
+- [x] Input 欄位寬度不超出側邊面板容器（Responsive）
+- [x] 同一時間只有一個 Label 可處於編輯狀態
+
+## 驗收說明
+
+- 實作：`components/SyncSidebar.tsx`（`Pencil`、雙擊名稱、`pointerdown` 偵測列外取消）。
 
 ## 依賴關係
 

@@ -24,12 +24,18 @@
 
 ## 驗收條件
 
-- [ ] 名稱為空字串時，系統不儲存，Input 欄位顯示錯誤提示（e.g. 「名稱不得為空」）
-- [ ] 名稱超過長度限制（建議 ≤ 100 字元）時，顯示錯誤提示
-- [ ] 驗證通過後，側邊面板列表即時更新為新名稱（Optimistic UI）
-- [ ] 時間軸上引用該 Label 的標記同步顯示新名稱
+- [x] 名稱為空字串時，系統不儲存，Input 欄位顯示錯誤提示（e.g. 「名稱不得為空」）
+- [x] 名稱超過長度限制（建議 ≤ 100 字元）時，顯示錯誤提示
+- [x] 驗證通過後，側邊面板列表即時更新為新名稱（Optimistic UI）
+- [x] 時間軸上引用該 Label 的標記同步顯示新名稱
 - [ ] API 回傳失敗時，UI 回滾為舊名稱並顯示錯誤訊息
 - [ ] 權限不足時（非擁有者或無編輯權），API 拒絕請求並顯示對應提示
+
+## 驗收說明
+
+- 驗證與第 N 次出現替換：`lib/labels/labelOccurrenceMutations.ts`（`validateLabelName`、`replaceLabelAtOccurrence`）；成功時更新父層 `text`，`LabeledTextarea` 與 `useLabelTimings` 隨文稿同步。
+- 側欄名稱顯示以 `parseLabels(text)` 為準，避免與 `useLabelTimings` debounce 不同步。
+- 本專案目前無遠端 Label API 與帳號權限；上列兩項與 API／權限相關之 AC 留待接後端時再驗收。
 
 ## 依賴關係
 

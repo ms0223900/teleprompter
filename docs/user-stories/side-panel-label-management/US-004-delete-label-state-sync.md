@@ -24,12 +24,19 @@
 
 ## 驗收條件
 
-- [ ] 點擊確認後，側邊面板 Label 列表即時移除該項目（Optimistic UI，AC3）
-- [ ] 時間軸上與該 Label 關聯的所有標記同步消失（AC3）
-- [ ] API 成功回應後，UI 狀態穩定，無殘留資料
+- [x] 點擊確認後，側邊面板 Label 列表即時移除該項目（Optimistic UI，AC3）
+- [x] 時間軸上與該 Label 關聯的所有標記同步消失（AC3）
+- [x] API 成功回應後，UI 狀態穩定，無殘留資料
 - [ ] API 回傳失敗時，UI 回滾並顯示錯誤提示
 - [ ] 權限不足時（非擁有者或無編輯權），API 拒絕請求並顯示對應提示
-- [ ] 若 Label 正被其他邏輯引用（如篩選條件），刪除後不應造成 runtime crash（需處理孤立引用，Spec §6 Label 引用檢查）
+- [x] 若 Label 正被其他邏輯引用（如篩選條件），刪除後不應造成 runtime crash（需處理孤立引用，Spec §6 Label 引用檢查）
+
+## 驗收說明
+
+- 刪除為移除文稿中該次出現之 `[label]` token：`removeLabelAtOccurrence`；狀態即寫入 `text`，側欄與 timing 由既有 parse／hook 重算。
+- 本機無遠端 API 時，「成功回應」視為同步更新完成；持久化仍依 `saveManuscript` debounce。
+- API 失敗回滾與權限 AC 留待接後端。
+- 目前無篩選等額外 label 引用邏輯；刪除後以文稿為單一事實來源，無已知 crash 路徑。
 
 ## 依賴關係
 
