@@ -254,10 +254,11 @@ export default function TelePrompter() {
     return { totalChars, estimatedTotalSeconds };
   }, [playbackSourceText, wpm]);
 
-  // 5. 當前行所需總毫秒數
+  // 5. 當前行所需總毫秒數（與 SyncSidebar／Header 同用 countSpeechChars，避免「側欄秒數」與實際捲動不一致）
   const currentLineDuration = useMemo(() => {
-    const charCount = (processedLines[currentLineIndex] || "").length;
-    return charCount <= 0 ? 1000 : (charCount / wpm) * 60 * 1000;
+    const line = processedLines[currentLineIndex] || "";
+    const units = countSpeechChars(line);
+    return units <= 0 ? 1000 : (units / wpm) * 60 * 1000;
   }, [currentLineIndex, processedLines, wpm]);
 
   // 6. 核心換行邏輯與行內進度計時
