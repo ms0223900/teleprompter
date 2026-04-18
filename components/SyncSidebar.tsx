@@ -192,6 +192,12 @@ export default function SyncSidebar({
         </div>
       </div>
 
+      {hasLabels && (
+        <p className="px-4 py-2 text-[11px] text-gray-500 border-b border-white/5 leading-snug">
+          雙擊標籤名稱可編輯，亦可點擊鉛筆圖示。
+        </p>
+      )}
+
       {/* Body */}
       <div className="flex-1 overflow-y-auto">
         {showHelp && <HelpPopover onClose={() => setShowHelp(false)} />}
@@ -377,6 +383,9 @@ function HelpPopover({ onClose }: { onClose: () => void }) {
         非法：<code className="text-gray-500">[中文]</code>、
         <code className="text-gray-500">[foo-bar]</code>
       </p>
+      <p className="mt-2 text-gray-400">
+        側欄標籤列表中，雙擊名稱可編輯，亦可點擊鉛筆圖示。
+      </p>
     </div>
   );
 }
@@ -432,6 +441,7 @@ function UsageGuide() {
           <li>編輯模式：標籤以藍色突顯</li>
           <li>播放模式：標籤不出現在畫面上，僅作切段依據</li>
           <li>側欄：顯示每段字詞數、秒數、幀數與累積起始幀</li>
+          <li>側欄列表：雙擊標籤名稱可編輯，亦可點擊鉛筆圖示。</li>
           <li>匯出：<code>{"{ label, startFrame, durationFrames }"}</code></li>
         </ul>
       </section>
